@@ -1,0 +1,12 @@
+/*-- scss:defaults --*/
+$font-size-base: 1.2rem;  // This scales everything moderately
+
+/*-- scss:rules --*/
+.reveal {
+  font-size: 1.2em;
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  font-weight: bold;
+  line-height: 1.2;
+}

@@ -1,0 +1,323 @@
+---
+title: "From Dataset to Insight: Building Powerful R Shiny Apps with minimal coding background"
+author: "Anirban Shaw"
+format:
+  revealjs:
+    theme: default
+    slide-number: true
+    transition: slide
+    fontsize: "150%"
+    css: custom.scss
+---
+
+## Welcome & Introduction
+
+-   **About Me**
+    -   Data Science professional with a strong AI & R Shiny foundation\
+    -   From Kolkata → Worked in Chennai, Bangalore, Pune, Hyderabad\
+    -   Experienced in:
+        -   AI model training & deployment\
+        -   Interactive analytics in R, Python, Shiny\
+        -   Fortune 500 scalable R Shiny apps\
+    -   At Bristol Myers Squibb:
+        -   Clinical trial visualization, CDISC-aligned tools\
+    -   Passionate about statistics, engineering, and design
+
+------------------------------------------------------------------------
+
+## Scope of Today’s Session
+
+-   What You’ll Learn:
+    -   Journey from dataset → insights in R\
+    -   R vs Python – different strengths\
+    -   Hands-on: Build a full-featured Shiny app\
+-   Key Concepts:
+    -   Data wrangling\
+    -   Functional programming\
+    -   Reactive architecture\
+    -   UX for data dashboards
+
+------------------------------------------------------------------------
+
+## R for Data Science
+
+-   Purpose-built for **data analysis**, **statistics**, and **visualization**
+-   Core paradigm: **functional programming**
+-   Rich ecosystem:
+    -   Data manipulation: `dplyr`, `data.table`
+    -   Visualization: `ggplot2`, `plotly`, `shiny`
+    -   Modeling: `caret`, `tidymodels`, `lme4`
+-   Deep integration with academia, surveys, and social sciences
+
+------------------------------------------------------------------------
+
+## Python for Data Science
+
+-   General-purpose language with strong data science libraries
+-   Core paradigm: **object-oriented**, also supports functional
+-   Rich ecosystem:
+    -   Data manipulation: `pandas`, `numpy`
+    -   Visualization: `matplotlib`, `seaborn`, `plotly`, `altair`
+    -   Modeling: `scikit-learn`, `statsmodels`, `xgboost`
+-   Widely used in ML/AI, production pipelines, engineering teams
+
+------------------------------------------------------------------------
+
+## Summary: R vs Python
+
+| Feature         | R                         | Python                        |
+|------------------|----------------------------|--------------------------|
+| Primary Use     | Statistics, Visualization | ML/AI, Engineering            |
+| Syntax Style    | Functional (pipe-based)   | Object-oriented (class-based) |
+| Community       | Academic, Government      | Industry, Tech                |
+| Shiny Framework | Yes                       | Streamlit / Plotly Dash       |
+
+------------------------------------------------------------------------
+
+## Functional Programming
+
+![](images/clipboard-2572343078.png)
+
+------------------------------------------------------------------------
+
+## R Basics: Refresher
+
+``` r
+# Vectors
+x <- c(10, 20, 30)
+length(x)
+
+# Summary statistics
+mean(x)
+median(x)
+sd(x)
+
+# Data frames
+df <- data.frame(name = c("A", "B"), age = c(23, 45))
+str(df)
+
+# Piping
+library(dplyr)
+df %>% filter(age > 30)
+
+# Functions
+square <- function(x) x^2
+square(4)
+```
+
+## R Shiny
+
+``` r
+# app.R
+
+library(shiny)
+
+ui <- fluidPage(
+  titlePanel("Single-File Shiny App (No Modules)"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      h4("Choose variable to plot"),
+      selectInput("var", "Select variable:", choices = names(mtcars))
+    ),
+    
+    mainPanel(
+      plotOutput("plot")
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  output$plot <- renderPlot({
+    var <- input$var
+    hist(mtcars[[var]], main = paste("Histogram of", var), col = "steelblue", border = "white")
+  })
+}
+
+shinyApp(ui, server)
+```
+
+## R Shiny Modules
+
+``` r
+# app.R
+
+library(shiny)
+
+# === Module UI ===
+mod_plot_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+    selectInput(ns("var"), "Select variable:", choices = names(mtcars)),
+    plotOutput(ns("plot"))
+  )
+}
+
+# === Module Server ===
+mod_plot_server <- function(id) {
+  moduleServer(id, function(input, output, session) {
+    output$plot <- renderPlot({
+      var <- input$var
+      hist(mtcars[[var]], main = paste("Histogram of", var), col = "steelblue", border = "white")
+    })
+  })
+}
+
+# === App UI ===
+ui <- fluidPage(
+  titlePanel("Single-File Modular Shiny App"),
+  sidebarLayout(
+    sidebarPanel(h4("Choose variable to plot")),
+    mainPanel(
+      mod_plot_ui("plot1")
+    )
+  )
+)
+
+# === App Server ===
+server <- function(input, output, session) {
+  mod_plot_server("plot1")
+}
+
+# === Run App ===
+shinyApp(ui, server)
+```
+
+## R Shiny Modules + CSS
+
+``` r
+# app.R
+
+library(shiny)
+
+# Define module UI
+mod_plot_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+    tags$style(HTML("
+      h1 {
+        color: darkblue;
+        font-size: 2em;
+      }
+      .btn {
+        background-color: #4CAF50;
+        color: white;
+      }
+    ")),
+    h1("Modular Plot App with Inline CSS"),
+    selectInput(ns("var"), "Select variable:", choices = names(mtcars)),
+    actionButton(ns("go"), "Plot", class = "btn"),
+    plotOutput(ns("plot"))
+  )
+}
+
+# Define module server
+mod_plot_server <- function(id) {
+  moduleServer(id, function(input, output, session) {
+    observeEvent(input$go, {
+      output$plot <- renderPlot({
+        var <- input$var
+        hist(mtcars[[var]],
+             main = paste("Histogram of", var),
+             col = "steelblue",
+             border = "white")
+      })
+    })
+  })
+}
+
+# Main app UI
+ui <- fluidPage(
+  mod_plot_ui("main")
+)
+
+# Main app server
+server <- function(input, output, session) {
+  mod_plot_server("main")
+}
+
+shinyApp(ui, server)
+```
+
+## R Shiny Modules + CSS + JS
+
+``` r
+# app.R
+
+library(shiny)
+
+# Module UI
+mod_plot_ui <- function(id) {
+  ns <- NS(id)
+  tagList(
+    # Inline CSS
+    tags$style(HTML("
+      h1 {
+        color: darkblue;
+        font-size: 2em;
+      }
+      .btn {
+        background-color: #4CAF50;
+        color: white;
+      }
+    ")),
+
+    # Inline JS using a <script> tag
+    tags$script(HTML("
+      Shiny.addCustomMessageHandler('greet', function(message) {
+        alert('Hello, ' + message + '!');
+      });
+    ")),
+
+    h1("Modular Plot App with CSS + JS"),
+    selectInput(ns("var"), "Select variable:", choices = names(mtcars)),
+    actionButton(ns("go"), "Plot", class = "btn"),
+    plotOutput(ns("plot"))
+  )
+}
+
+# Module Server
+mod_plot_server <- function(id) {
+  moduleServer(id, function(input, output, session) {
+    observeEvent(input$go, {
+      output$plot <- renderPlot({
+        var <- input$var
+        hist(mtcars[[var]],
+             main = paste("Histogram of", var),
+             col = "steelblue",
+             border = "white")
+      })
+      # Send JS message
+      session$sendCustomMessage("greet", "Anirban")
+    })
+  })
+}
+
+# App UI
+ui <- fluidPage(
+  mod_plot_ui("main")
+)
+
+# App Server
+server <- function(input, output, session) {
+  mod_plot_server("main")
+}
+
+shinyApp(ui, server)
+```
+
+## Demo
+
+I have a dataset, how do I build R Shiny App to explore/analyse the data
+
+> Using a combination of ChatGPT prompting and R Studio, you can build an app without any knowledge of R programming.
+
+## Useful links:
+
+1. https://www.appsilon.com/post/functional-programming-in-r-part-1
+2. https://www.appsilon.com/post/functional-programming-in-r-part-2
+3. https://mastering-shiny.org/
+4. https://r-pkgs.org/
+5. https://shiny.posit.co/r/articles/improve/modules/
+
+These are some examples. You will find more info if you google or ask ChatGPT
